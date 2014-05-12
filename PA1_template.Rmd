@@ -1,20 +1,83 @@
 # Reproducible Research: Peer Assessment 1
 
 
+
+
 ## Loading and preprocessing the data
 
+For loading the data, we assume that the data is available in the `data` directory at the same level as the markdown file. If it is not, the data should be [downloaded](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) and unzipped in the `data` directory. The unzipped file is named `activity.csv`
 
+
+```{r echo=TRUE}
+# Path to data
+data_file_path <- "data/activity.csv"
+if (!file.exists(data_file_path)){
+    stop("Data file not available. Please place the data in `data/activity.csv`")
+}
+data <- read.csv(data_file_path)
+data$date <- as.Date(data$date)
+# Check how the data looks
+head(data, n=5)
+```
 
 ## What is mean total number of steps taken per day?
 
+1. The histogram of the data can be plotted using the following piece of code
 
+```{r}
+with(data, hist(steps))
+```
+
+2. The mean and meadian of the total number of steps can be calculated as
+
+```{r}
+mean_steps <- mean(data$steps, na.rm=TRUE)
+mean_steps
+median_steps <- median(data$steps, na.rm=TRUE)
+median_steps
+```
 
 ## What is the average daily activity pattern?
 
+1. Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
 
+```{r}
+library(data.table)
+dt <- data.table(data)
+mean_across_days <- dt[,list(mean=mean(steps, na.rm=TRUE)),by=interval]
+with(mean_across_days, plot(interval, mean, type="l"))
+```
+
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+
+```{r}
+mean_across_days[which.max(mean_across_days$mean),][["interval"]]
+```
 
 ## Imputing missing values
 
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
+```{r}
+sum(is.na(data))
+```
 
+2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+```{r}
+imputed_data <- data
+na_data <- is.na(imputed_data)
+na_intervals <- imputed_data$interval[na_data]
+imputed_data[na_data] <- sapply(na_intervals, function(x) mean_across_days[interval==x,][["mean"]])
+sum(is.na(imputed_data))
+```
+
+```{r}
+with(imputed_data, hist(steps))
+mean(imputed_data$steps)
+median(imputed_data$steps)
+
+```
 ## Are there differences in activity patterns between weekdays and weekends?
