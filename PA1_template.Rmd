@@ -22,18 +22,22 @@ head(data, n=5)
 
 * The histogram of the data can be plotted using the following piece of code
 
-```{r histogram_steps_raw_data}
+```{r histogram_steps_raw_data, tidy=FALSE}
+library(data.table)
+dt <- data.table(data)
+data_steps_per_day <- dt[,list(steps=sum(steps, na.rm=TRUE)),by=date]
 # Plot histogram of steps wih raw data
-with(data, hist(steps, main="Histogram of steps (Raw data)"))
+with(data_steps_per_day, 
+     hist(steps, main="Histogram of total number of steps taken each day (Raw data)"))
 ```
 
 * The mean and median of the total number of steps can be calculated as
 
 ```{r}
-# Mean number of steps with raw dataset
-mean(data$steps, na.rm=TRUE)
-# Median number of steps with raw dataset
-median(data$steps, na.rm=TRUE)
+# Mean number of steps taken each day with raw dataset
+mean(data_steps_per_day$steps, na.rm=TRUE)
+# Median number of steps taken each day with raw dataset
+median(data_steps_per_day$steps, na.rm=TRUE)
 ```
 
 ## What is the average daily activity pattern?
@@ -41,7 +45,6 @@ median(data$steps, na.rm=TRUE)
 * Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
 
 ```{r average_daily_activity_pattern}
-library(data.table)
 dt <- data.table(data)
 mean_across_days <- dt[,list(mean=mean(steps, na.rm=TRUE)),by=interval]
 # Average daily pattern plot
@@ -79,28 +82,21 @@ imputed_data[na_data] <- sapply(na_intervals,
 sum(is.na(imputed_data))
 ```
 
-The histogram of the steps from the imputed data looks similar to the histogram plot with raw data
+The histogram of the steps from the imputed data looks more symmetric than the raw data because we have gotten rid of the `NA` values.
 
-```{r histogram_steps_imputed_data}
+```{r histogram_steps_imputed_data, tidy=FALSE}
+dt <- data.table(imputed_data)
+imputed_data_steps_per_day <- dt[,list(steps=sum(steps, na.rm=TRUE)),by=date]
 # Histogram of steps with imputed data
-with(imputed_data, hist(steps, main="Histogram of steps (Imputed data)"))
-# Mean number of steps with imputed dataset
-mean(imputed_data$steps)
-# Median number of steps with imputed dataset
-median(imputed_data$steps)
+with(imputed_data_steps_per_day,
+     hist(steps, main="Histogram of total number of steps taken each day (Imputed data)"))
+# Mean number of steps taken each day with imputed dataset
+mean(imputed_data_steps_per_day$steps)
+# Median number of steps taken each day with imputed dataset
+median(imputed_data_steps_per_day$steps)
 ```
 
-As you can see, the mean and median of the raw and imputed data remains the same.
-Now let's look at the number of steps:
-
-```{r}
-# Total steps with raw data
-sum(data$steps, na.rm=TRUE)
-# Total steps with imputed data
-sum(imputed_data$steps)
-```
-
-As expected, the number of steps for the imputed data is more than the raw data.
+As you can see, the mean and median of the imputed data is more than the raw data because we have replaced the missing data with the mean values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
