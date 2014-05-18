@@ -1,12 +1,10 @@
 # Reproducible Research: Peer Assessment 1
 
-
-
+This assignment is a means to learn about the [knitr](http://yihui.name/knitr/) package with R used to produce markdown and html files with R code embedded which is a great step towards starting a reproducible research.
 
 ## Loading and preprocessing the data
 
-For loading the data, we assume that the data is available in the `data` directory at the same level as the markdown file. If it is not, the data should be [downloaded](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) and unzipped in the `data` directory. The unzipped file is named `activity.csv`
-
+For loading the data, we assume that the data is available in the `data` directory at the same level as the markdown file. If it is not, the data should be [downloaded](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) and unzipped in the `data` directory. The unzipped file is named `activity.csv`.
 
 
 ```r
@@ -33,22 +31,23 @@ head(data, n = 5)
 
 ## What is mean total number of steps taken per day?
 
-1. The histogram of the data can be plotted using the following piece of code
+* The histogram of the data can be plotted using the following piece of code
 
 
 ```r
-with(data, hist(steps))
+# Plot histogram of steps wih raw data
+with(data, hist(steps, main = "Histogram of steps (Raw data)"))
 ```
 
 ![plot of chunk histogram_steps_raw_data](figure/histogram_steps_raw_data.png) 
 
 
-2. The mean and meadian of the total number of steps can be calculated as
+* The mean and median of the total number of steps can be calculated as
 
 
 ```r
-mean_steps <- mean(data$steps, na.rm = TRUE)
-mean_steps
+# Mean number of steps with raw dataset
+mean(data$steps, na.rm = TRUE)
 ```
 
 ```
@@ -56,8 +55,8 @@ mean_steps
 ```
 
 ```r
-median_steps <- median(data$steps, na.rm = TRUE)
-median_steps
+# Median number of steps with raw dataset
+median(data$steps, na.rm = TRUE)
 ```
 
 ```
@@ -67,23 +66,25 @@ median_steps
 
 ## What is the average daily activity pattern?
 
-1. Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
+* Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
 
 
 ```r
 library(data.table)
 dt <- data.table(data)
 mean_across_days <- dt[, list(mean = mean(steps, na.rm = TRUE)), by = interval]
-with(mean_across_days, plot(interval, mean, type = "l"))
+# Average daily pattern plot
+with(mean_across_days, plot(interval, mean, type = "l", main = "Average daily pattern"))
 ```
 
 ![plot of chunk average_daily_activity_pattern](figure/average_daily_activity_pattern.png) 
 
 
-2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+* Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 
 ```r
+# Interval with max number of steps
 mean_across_days[which.max(mean_across_days$mean), ][["interval"]]
 ```
 
@@ -94,10 +95,11 @@ mean_across_days[which.max(mean_across_days$mean), ][["interval"]]
 
 ## Imputing missing values
 
-1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+* Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NAs`)
 
 
 ```r
+# Total NA values
 sum(is.na(data))
 ```
 
@@ -106,17 +108,19 @@ sum(is.na(data))
 ```
 
 
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+* We devise a strategy for filling in all of the missing values in the dataset. This strategy is simple which assigns the mean for a particular 5-minute interval to the missing data. Note that we have already computed in these values in `mean_across_days`.
 
-3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+* Create a new dataset that is equal to the original dataset but with the missing data filled in (we shall call this `imputed_data`)
 
 
 ```r
 imputed_data <- data
 na_data <- is.na(imputed_data)
 na_intervals <- imputed_data$interval[na_data]
-imputed_data[na_data] <- sapply(na_intervals, function(x) mean_across_days[interval == 
-    x, ][["mean"]])
+# Make imputed data replacing NAs with 5-minute average
+imputed_data[na_data] <- sapply(na_intervals, 
+                                function(x) mean_across_days[interval==x,][["mean"]])
+# Verify that there is no NA values in the imputed data
 sum(is.na(imputed_data))
 ```
 
@@ -125,14 +129,18 @@ sum(is.na(imputed_data))
 ```
 
 
+The histogram of the steps from the imputed data looks similar to the histogram plot with raw data
+
 
 ```r
-with(imputed_data, hist(steps))
+# Histogram of steps with imputed data
+with(imputed_data, hist(steps, main = "Histogram of steps (Imputed data)"))
 ```
 
 ![plot of chunk histogram_steps_imputed_data](figure/histogram_steps_imputed_data.png) 
 
 ```r
+# Mean number of steps with imputed dataset
 mean(imputed_data$steps)
 ```
 
@@ -141,6 +149,7 @@ mean(imputed_data$steps)
 ```
 
 ```r
+# Median number of steps with imputed dataset
 median(imputed_data$steps)
 ```
 
@@ -149,11 +158,12 @@ median(imputed_data$steps)
 ```
 
 
-As you can see, the mean and median of the raw and imputted data remains the same.
+As you can see, the mean and median of the raw and imputed data remains the same.
 Now let's look at the number of steps:
 
 
 ```r
+# Total steps with raw data
 sum(data$steps, na.rm = TRUE)
 ```
 
@@ -162,6 +172,7 @@ sum(data$steps, na.rm = TRUE)
 ```
 
 ```r
+# Total steps with imputed data
 sum(imputed_data$steps)
 ```
 
@@ -174,42 +185,40 @@ As expected, the number of steps for the imputed data is more than the raw data.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
+* Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
 
 ```r
-imputed_data$weekdays <- weekdays(imputed_data$date) %in% c("Saturday", "Sunday")
-imputed_data$weekfactors <- factor(imputed_data$weekdays, labels = c("weekday", 
-    "weekend"), levels = c(FALSE, TRUE))
+imputed_data$weekdays <- weekdays(imputed_data$date) %in% c('Saturday', 'Sunday')
+# Labeling factors as weekday and weekend
+imputed_data$weekfactors <- factor(imputed_data$weekdays,
+                                   labels=c("weekday","weekend"),
+                                   levels=c(FALSE, TRUE))
 ```
 
+
+* A panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
 
 ```r
 dt_imputed <- data.table(imputed_data)
 
-data_to_plot <- dt_imputed[dt_imputed$weekfactors == "weekday", list(steps = mean(steps), 
-    weekfactors = "weekday"), by = interval]
+data_to_plot <- dt_imputed[dt_imputed$weekfactors=="weekday",
+                           list(steps=mean(steps), weekfactors="weekday"),
+                           by=interval]
 
-data_to_plot <- rbind(data_to_plot, dt_imputed[dt_imputed$weekfactors == "weekend", 
-    list(steps = mean(steps), weekfactors = "weekend"), by = interval])
-
-head(data_to_plot)
-```
-
-```
-##    interval   steps weekfactors
-## 1:        0 2.25115     weekday
-## 2:        5 0.44528     weekday
-## 3:       10 0.17317     weekday
-## 4:       15 0.19790     weekday
-## 5:       20 0.09895     weekday
-## 6:       25 1.59036     weekday
-```
-
-```r
-
+data_to_plot <- rbind(data_to_plot, 
+                      dt_imputed[dt_imputed$weekfactors=="weekend",
+                                 list(steps=mean(steps), weekfactors="weekend"), 
+                                 by=interval])
+# Plot average number of steps for weekend and weekday
 library(lattice)
-xyplot(steps ~ interval | weekfactors, data = data_to_plot, type = "l", horizontal = TRUE, 
-    layout = c(1, 2))
+xyplot(steps ~ interval | weekfactors,
+       data=data_to_plot,
+       type = "l",
+       horizontal = TRUE,
+       layout=c(1,2),
+       main="Average steps pattern: weekend v/s weekday")
 ```
 
 ![plot of chunk weekday_weekend_pattern](figure/weekday_weekend_pattern.png) 
