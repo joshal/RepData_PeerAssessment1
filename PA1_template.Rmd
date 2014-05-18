@@ -24,7 +24,7 @@ head(data, n=5)
 
 1. The histogram of the data can be plotted using the following piece of code
 
-```{r}
+```{r histogram_steps_raw_data}
 with(data, hist(steps))
 ```
 
@@ -41,7 +41,7 @@ median_steps
 
 1. Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
 
-```{r}
+```{r average_daily_activity_pattern}
 library(data.table)
 dt <- data.table(data)
 mean_across_days <- dt[,list(mean=mean(steps, na.rm=TRUE)),by=interval]
@@ -74,10 +74,38 @@ imputed_data[na_data] <- sapply(na_intervals, function(x) mean_across_days[inter
 sum(is.na(imputed_data))
 ```
 
-```{r}
+```{r histogram_steps_imputed_data}
 with(imputed_data, hist(steps))
 mean(imputed_data$steps)
 median(imputed_data$steps)
-
 ```
+
+As you can see, the mean and median of the raw and imputted data remains the same.
+Now let's look at the number of steps:
+
+```{r}
+sum(data$steps, na.rm=TRUE)
+sum(imputed_data$steps)
+```
+
+As expected, the number of steps for the imputed data is more than the raw data.
+
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+imputed_data$weekdays <- weekdays(imputed_data$date) %in% c('Saturday', 'Sunday')
+imputed_data$weekfactors <- factor(imputed_data$weekdays, labels=c("weekday","weekend"), levels=c(FALSE, TRUE))
+```
+
+```{r weekday_weekend_pattern}
+dt_imputed <- data.table(imputed_data)
+
+data_to_plot <- dt_imputed[dt_imputed$weekfactors=="weekday",list(steps=mean(steps), weekfactors="weekday"), by=interval]
+
+data_to_plot <- rbind(data_to_plot, dt_imputed[dt_imputed$weekfactors=="weekend",list(steps=mean(steps), weekfactors="weekend"), by=interval])
+
+head(data_to_plot)
+
+library(lattice)
+xyplot(steps ~ interval | weekfactors, data=data_to_plot, type = "l", horizontal = TRUE, layout=c(1,2))
+```
