@@ -22,7 +22,7 @@ head(data, n=5)
 
 * The histogram of the data can be plotted using the following piece of code
 
-```{r histogram_steps_raw_data, tidy=FALSE}
+```{r histogram_steps_raw_data, tidy=FALSE, echo=TRUE}
 library(data.table)
 dt <- data.table(data)
 data_steps_per_day <- dt[,list(steps=sum(steps, na.rm=TRUE)),by=date]
@@ -33,7 +33,7 @@ with(data_steps_per_day,
 
 * The mean and median of the total number of steps can be calculated as
 
-```{r}
+```{r echo=TRUE}
 # Mean number of steps taken each day with raw dataset
 mean(data_steps_per_day$steps, na.rm=TRUE)
 # Median number of steps taken each day with raw dataset
@@ -44,7 +44,7 @@ median(data_steps_per_day$steps, na.rm=TRUE)
 
 * Time series plot of the 5-minute interval and the average number of steps taken, averaged across all days
 
-```{r average_daily_activity_pattern}
+```{r average_daily_activity_pattern, echo=TRUE}
 dt <- data.table(data)
 mean_across_days <- dt[,list(mean=mean(steps, na.rm=TRUE)),by=interval]
 # Average daily pattern plot
@@ -53,7 +53,7 @@ with(mean_across_days, plot(interval, mean, type="l", main="Average daily patter
 
 * Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
-```{r}
+```{r echo=TRUE}
 # Interval with max number of steps
 mean_across_days[which.max(mean_across_days$mean),][["interval"]]
 ```
@@ -62,7 +62,7 @@ mean_across_days[which.max(mean_across_days$mean),][["interval"]]
 
 * Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NAs`)
 
-```{r}
+```{r echo=TRUE}
 # Total NA values
 sum(is.na(data))
 ```
@@ -71,7 +71,7 @@ sum(is.na(data))
 
 * Create a new dataset that is equal to the original dataset but with the missing data filled in (we shall call this `imputed_data`)
 
-```{r tidy=FALSE}
+```{r tidy=FALSE, echo=TRUE}
 imputed_data <- data
 na_data <- is.na(imputed_data)
 na_intervals <- imputed_data$interval[na_data]
@@ -84,7 +84,7 @@ sum(is.na(imputed_data))
 
 The histogram of the steps from the imputed data looks more symmetric than the raw data because we have gotten rid of the `NA` values.
 
-```{r histogram_steps_imputed_data, tidy=FALSE}
+```{r histogram_steps_imputed_data, tidy=FALSE, echo=TRUE}
 dt <- data.table(imputed_data)
 imputed_data_steps_per_day <- dt[,list(steps=sum(steps, na.rm=TRUE)),by=date]
 # Histogram of steps with imputed data
@@ -102,7 +102,7 @@ As you can see, the mean and median of the imputed data is more than the raw dat
 
 * Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
-```{r tidy=FALSE}
+```{r tidy=FALSE, echo=TRUE}
 imputed_data$weekdays <- weekdays(imputed_data$date) %in% c('Saturday', 'Sunday')
 # Labeling factors as weekday and weekend
 imputed_data$weekfactors <- factor(imputed_data$weekdays,
